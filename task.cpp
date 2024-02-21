@@ -9,7 +9,7 @@ char calculated_checksum_hex[3];
 int Start_Parsing(string packet);
 void Tokenize_data(char final_sentence[]);
 void manage_missing(string packet);
-
+bool unit_test();
 
 struct GPSData{
     string sentenceID;
@@ -29,7 +29,7 @@ struct GPSData{
     string differentialstationID;
     string checksum;
 
-}GPSdata;
+}GPSdata, Dummy;
 
 //struct GPSdata ind_param;
 int main()
@@ -41,22 +41,24 @@ Start_Parsing(Sentence);
 
 //GPSdata ind_param;
 
-cout<<"sentence ID: "<< GPSdata.sentenceID<<endl;
-cout<<"time: "<< GPSdata.time<<endl;
-cout<<"latitude: "<< GPSdata.latitude<<endl;
-cout<<"latitude Direction: "<< GPSdata.latDir<<endl;
-cout<<"longitude: "<< GPSdata.latitude<<endl;
-cout<<"longitude Direction: "<< GPSdata.latDir<<endl;
-cout<<"Quality Indicator: "<<GPSdata.QualityIndicator<<endl;
-cout<<"No of satellites: "<<GPSdata.NumofSat<<endl;
-cout<<"horizontal dilution: "<<GPSdata.horizontaldilution<<endl;
-cout<<"altitude: "<<GPSdata.altitude<<endl;
-cout<<"altitude units: "<<GPSdata.altitudeUnits<<endl;
-cout<<"mean sea level height: "<<GPSdata.meansealevelheight<<endl;
+cout<<"sentence ID: "<<                    GPSdata.sentenceID<<endl;
+cout<<"time: "<<                                 GPSdata.time<<endl;
+cout<<"latitude: "<<                         GPSdata.latitude<<endl;
+cout<<"latitude Direction: "<<                 GPSdata.latDir<<endl;
+cout<<"longitude: "<<                        GPSdata.latitude<<endl;
+cout<<"longitude Direction: "<<                GPSdata.latDir<<endl;
+cout<<"Quality Indicator: "<<        GPSdata.QualityIndicator<<endl;
+cout<<"No of satellites: "<<                 GPSdata.NumofSat<<endl;
+cout<<"horizontal dilution: "<<    GPSdata.horizontaldilution<<endl;
+cout<<"altitude: "<<                         GPSdata.altitude<<endl;
+cout<<"altitude units: "<<              GPSdata.altitudeUnits<<endl;
+cout<<"mean sea level height: "<<  GPSdata.meansealevelheight<<endl;
 cout<<"geoideal separation unit: "<<GPSdata.geoidseparationUnits<<endl;
-cout<<"time since last DC: "<<GPSdata.timesincelastDC<<endl;
+cout<<"time since last DC: "<<        GPSdata.timesincelastDC<<endl;
 cout<<"differential sation id: "<<GPSdata.differentialstationID<<endl;
-cout<<"checksum: "<<GPSdata.checksum<<endl;
+cout<<"checksum: "<<                            GPSdata.checksum<<endl;
+
+
 
 
  return 0;
@@ -258,3 +260,8 @@ while(token!=NULL)
     GPSdata.checksum=calculated_checksum_hex;
 }
 
+bool unit_test()
+{
+    
+
+}
