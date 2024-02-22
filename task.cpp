@@ -9,7 +9,8 @@ char calculated_checksum_hex[3];
 int Start_Parsing(string packet);
 void Tokenize_data(char final_sentence[]);
 void manage_missing(string packet);
-bool unit_test();
+bool unit_test1();
+void print();
 
 struct GPSData{
     string sentenceID;
@@ -34,34 +35,90 @@ struct GPSData{
 //struct GPSdata ind_param;
 int main()
 {
-    string Sentence="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E";
+    string Sentence1="$GPGGA,165132.00,5326.51778,N,00615.47460,W,1,07,1.0,64.1,M,46.2,M,,*45";
+    
+    //string Sentence2="$GPGGA,115739.00,4158.8441367,N,09147.4416929,W,4,13,0.9,255.747,M,-32.00,M,01,0000*6E";
+    //string Sentence3="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E"   //invalid sentence
 
-//parse_data(Sentence);
-Start_Parsing(Sentence);
-
-//GPSdata ind_param;
-
-cout<<"sentence ID: "<<                    GPSdata.sentenceID<<endl;
-cout<<"time: "<<                                 GPSdata.time<<endl;
-cout<<"latitude: "<<                         GPSdata.latitude<<endl;
-cout<<"latitude Direction: "<<                 GPSdata.latDir<<endl;
-cout<<"longitude: "<<                        GPSdata.latitude<<endl;
-cout<<"longitude Direction: "<<                GPSdata.latDir<<endl;
-cout<<"Quality Indicator: "<<        GPSdata.QualityIndicator<<endl;
-cout<<"No of satellites: "<<                 GPSdata.NumofSat<<endl;
-cout<<"horizontal dilution: "<<    GPSdata.horizontaldilution<<endl;
-cout<<"altitude: "<<                         GPSdata.altitude<<endl;
-cout<<"altitude units: "<<              GPSdata.altitudeUnits<<endl;
-cout<<"mean sea level height: "<<  GPSdata.meansealevelheight<<endl;
-cout<<"geoideal separation unit: "<<GPSdata.geoidseparationUnits<<endl;
-cout<<"time since last DC: "<<        GPSdata.timesincelastDC<<endl;
-cout<<"differential sation id: "<<GPSdata.differentialstationID<<endl;
-cout<<"checksum: "<<                            GPSdata.checksum<<endl;
-
-
-
+Start_Parsing(Sentence1);
+print();
+if (unit_test1())
+{
+    cout<<"Test 1 Passed"<<endl;
+}
+else
+{
+cout<<"Test 1 Failed"<<endl;
+}
 
  return 0;
+}
+
+int Start_Parsing(string packet)
+
+{
+     char provided_checksum[2];
+    // check if steric is present or not if not then no checksum found
+    int i = 0;
+    while (packet[i] != '*' && packet[i] != '\0') {
+        i++;
+        if (packet[i]=='*') //extract provided checksum
+        {
+          provided_checksum[0]=packet[i+1];
+          provided_checksum[1]=packet[i+2];
+          provided_checksum[2]='\0';
+          
+        }
+        
+    }
+    if (packet[i] != '*') {
+        cout<<"Checksum Not Found! '-': "<<endl;
+        return 0;
+    }
+
+    // Calculate checksum
+    unsigned int checksum = 0;
+    for (int i = 1; packet[i] != '*' && packet[i] != '\0'; i++) {
+        checksum ^= packet[i];
+    }
+
+
+    // Compute checksum in hexadecimal
+    
+    snprintf(calculated_checksum_hex, sizeof(calculated_checksum_hex), "%02X", checksum);
+
+
+
+    int commas = 0;
+    for (int i = 0; i < strlen(packet.c_str()); i++) {
+        if (packet[i] == ',') {
+            commas++;
+        }
+
+            
+    }
+ 
+
+    if (strncmp(packet.c_str(), "$GPGGA,", 7) == 0 && commas == 14 && packet[i] == '*')//c_str() function converts the string packet to a const character
+     {
+        cout<<"The sentence is in GGA format: \n"<<endl;
+
+    } else {
+       cout<<"The sentence is not in GGA format: \n"<<endl;
+        //return 0;
+    }
+
+    // Check packet integrity
+    if (strcmp(provided_checksum, calculated_checksum_hex) == 0) {
+        cout<<"Packet integrity valid: chksum \n"<< calculated_checksum_hex<<endl;
+
+        manage_missing(packet);  //if packet integrity valid then manage manage missing
+
+    } else {
+        cout<<"Packet integrity not valid: chksum \n"<< calculated_checksum_hex<<endl;
+        //return 0;
+        manage_missing(packet); 
+    }
 }
 
 void manage_missing(string packet) {
@@ -112,77 +169,6 @@ cout<<"final sentence is : "<<final_sentence<<endl;
 
                                                             
 }
-
-
-int Start_Parsing(string packet)
-
-{
-     char provided_checksum[2];
-    // check if steric is present or not if not then no checksum found
-    int i = 0;
-    while (packet[i] != '*' && packet[i] != '\0') {
-        i++;
-        if (packet[i]=='*') //extract provided checksum
-        {
-          provided_checksum[0]=packet[i+1];
-          provided_checksum[1]=packet[i+2];
-          provided_checksum[2]='\0';
-          
-        }
-        
-    }
-    if (packet[i] != '*') {
-        printf("No checksum found! '-' :");
-        return 0;
-    }
-
-    // Calculate checksum
-    unsigned int checksum = 0;
-    for (int i = 1; packet[i] != '*' && packet[i] != '\0'; i++) {
-        checksum ^= packet[i];
-    }
-
-
-    // Compute checksum in hexadecimal
-    
-    snprintf(calculated_checksum_hex, sizeof(calculated_checksum_hex), "%02X", checksum);
-
-
-
-    int commas = 0;
-    for (int i = 0; i < strlen(packet.c_str()); i++) {
-        if (packet[i] == ',') {
-            commas++;
-        }
-
-            
-    }
- 
-
-    if (strncmp(packet.c_str(), "$GPGGA,", 7) == 0 && commas == 14 && packet[i] == '*')//c_str() function converts the string packet to a const character
-     {
-        printf("The sentence is in GGA format: "); // GGA sentence
-    } else {
-        printf("The sentence is not in GGA format: ");
-        //return 0;
-    }
-
-    // Check packet integrity
-    if (strcmp(provided_checksum, calculated_checksum_hex) == 0) {
-
-        printf("Packet integrity valid chksum \n", calculated_checksum_hex);
-
-        manage_missing(packet);  //if packet integrity valid then manage manage missing
-
-    } else {
-        printf("Packet integrity not valid \n", calculated_checksum_hex );
-        //return 0;
-        manage_missing(packet); 
-    }
-
-
-}
-
 
 void Tokenize_data(char final_sentence[])
 {   
@@ -260,8 +246,41 @@ while(token!=NULL)
     GPSdata.checksum=calculated_checksum_hex;
 }
 
-bool unit_test()
+bool unit_test1() {
+    return (GPSdata.time == "002153.000") &&
+           (GPSdata.latitude == "3342.6618") &&
+           (GPSdata.latDir == 'N') &&
+           (GPSdata.longitude == "11751.3858") &&
+           (GPSdata.longDir == 'W') &&
+           (GPSdata.QualityIndicator == 1) &&
+           (GPSdata.NumofSat == 10) &&
+           (GPSdata.horizontaldilution == "1.2") &&
+           (GPSdata.altitude == "27.0") &&
+           (GPSdata.altitudeUnits == 'M') &&
+           (GPSdata.meansealevelheight == "-34.2") &&
+           (GPSdata.geoidseparationUnits == 'M') &&
+           (GPSdata.timesincelastDC == "#") &&
+           (GPSdata.differentialstationID == "0000") &&
+           (GPSdata.checksum == "5E");
+}
+
+void print()
 {
     
-
+cout<<"sentence ID: "<<                    GPSdata.sentenceID<<endl;
+cout<<"time: "<<                                 GPSdata.time<<endl;
+cout<<"latitude: "<<                         GPSdata.latitude<<endl;
+cout<<"latitude Direction: "<<                 GPSdata.latDir<<endl;
+cout<<"longitude: "<<                        GPSdata.longitude<<endl;
+cout<<"longitude Direction: "<<                GPSdata.longDir<<endl;
+cout<<"Quality Indicator: "<<        GPSdata.QualityIndicator<<endl;
+cout<<"No of satellites: "<<                 GPSdata.NumofSat<<endl;
+cout<<"horizontal dilution: "<<    GPSdata.horizontaldilution<<endl;
+cout<<"altitude: "<<                         GPSdata.altitude<<endl;
+cout<<"altitude units: "<<              GPSdata.altitudeUnits<<endl;
+cout<<"mean sea level height: "<<  GPSdata.meansealevelheight<<endl;
+cout<<"geoideal separation unit: "<<GPSdata.geoidseparationUnits<<endl;
+cout<<"time since last DC: "<<        GPSdata.timesincelastDC<<endl;
+cout<<"differential sation id: "<<GPSdata.differentialstationID<<endl;
+cout<<"checksum: "<<                            GPSdata.checksum<<endl;
 }
