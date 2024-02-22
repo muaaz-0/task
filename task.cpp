@@ -36,7 +36,7 @@ struct GPSData{
 int main()
 {
     string Sentence1="$GPGGA,165132.00,5326.51778,N,00615.47460,W,1,07,1.0,64.1,M,46.2,M,,*45";
-    
+
     //string Sentence2="$GPGGA,115739.00,4158.8441367,N,09147.4416929,W,4,13,0.9,255.747,M,-32.00,M,01,0000*6E";
     //string Sentence3="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E"   //invalid sentence
 
@@ -57,29 +57,27 @@ cout<<"Test 1 Failed"<<endl;
 int Start_Parsing(string packet)
 
 {
-     char provided_checksum[2];
-    // check if steric is present or not if not then no checksum found
-    int i = 0;
-    while (packet[i] != '*' && packet[i] != '\0') {
-        i++;
-        if (packet[i]=='*') //extract provided checksum
+    // Calculate checksum
+    int i=0;
+    unsigned int checksum = 0;
+    for (i = 1; packet[i] != '*' && packet[i] != '\0'; i++) {
+        checksum ^= packet[i];
+    }
+
+    
+char provided_checksum[2];
+      if (packet[i]=='*') //extract provided checksum
         {
           provided_checksum[0]=packet[i+1];
           provided_checksum[1]=packet[i+2];
           provided_checksum[2]='\0';
-          
         }
-        
-    }
+         // check if steric is present or not if not then no checksum found
+    
+    cout<<endl<<"the provided checksum is"<<provided_checksum<<endl;
     if (packet[i] != '*') {
         cout<<"Checksum Not Found! '-': "<<endl;
         return 0;
-    }
-
-    // Calculate checksum
-    unsigned int checksum = 0;
-    for (int i = 1; packet[i] != '*' && packet[i] != '\0'; i++) {
-        checksum ^= packet[i];
     }
 
 
