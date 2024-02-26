@@ -4,7 +4,7 @@
 using namespace std;
 
 char calculated_checksum_hex[3];
-
+enum Tokens {sentenceID, time, latitude, latDir, logitude, longitudeDir, QualityIndicator, Numofsattelites, horizontaldilution, altitude, altitudeUnits, meansealevelheight, geoidseparationUnits, timesincelastDC, differentialstationID};// enumeration of the tokens to use in switch statement
 
 int Start_Parsing(string packet);
 void Tokenize_data(char final_sentence[]);
@@ -35,12 +35,12 @@ struct GPSData{
 //struct GPSdata ind_param;
 int main()
 {
-    string Sentence1="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E";
+    string Sentence="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E";
 
-    //string Sentence2="$GPGGA,115739.00,4158.8441367,N,09147.4416929,W,4,13,0.9,255.747,M,-32.00,M,01,0000*6E";
-    //string Sentence3="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E"   //invalid sentence
+    //string Sentence="$GPGGA,115739.00,4158.8441367,N,09147.4416929,W,4,13,0.9,255.747,M,-32.00,M,01,0000*6E";
+    //string Sentence="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E"   //invalid sentence
 
-Start_Parsing(Sentence1);
+Start_Parsing(Sentence);
 print();
 if (unit_test1())
 {
@@ -112,7 +112,7 @@ char provided_checksum[2];
         manage_missing(packet);  //if packet integrity valid then manage manage missing function is called
     } else {
         cout<<"Packet integrity not valid: chksum \n"<< calculated_checksum_hex<<endl;   // if packet intefrity is not valid then return 0
-        return 0;
+        //return 0;
         //manage_missing(packet); 
     }
 }
@@ -136,117 +136,125 @@ void manage_missing(string packet) {
     
     int size= strlen(packet2);
    
-    char final_sentence[size + 1]; //  Increase size by 1 to accommodate the new character
+    char final_sentence[size + 1];      //  Increase size by 1 to accommodate the new character
 
-    strcpy(final_sentence, packet2);   // Copy the packet to final sentence that will contained managed data
+    strcpy(final_sentence, packet2);    //  Copy the packet to final sentence that will contained managed data
 
    
 
-    int mispos[size];                    
-    int empty_count = 0;
+    int mispos[size];                    //  Creating array to store position of missing character
+    int empty_count = 0;                 //  Counter to count the number of missing positions
 
-    for(int i = 0; i < size; i++) {
-        if(final_sentence[i] == ',' && final_sentence[i + 1] == ',') {
-            mispos[empty_count] = i + 1;
+    for(int pos = 0; pos < size; pos++) {
+        if(final_sentence[pos] == ',' && final_sentence[pos + 1] == ',') // checks for the consective commas
+        {
+            mispos[empty_count] = pos + 1;                               // if found consecutive comma then store next position for missing data
             empty_count++;
         }
     }
     //cout << "Number of empty positions: " << empty_count << endl;
 
-    for(int j = 0; j < empty_count; j++) {          //loop till run according to empty positions
+    for(int j = 0; j < empty_count; j++)            //loop to store # on missing positions, run till no of empty elements
+    {                                               //As when first element is added the missing positions will be updated so there need to update the position
 
-        int pos=mispos[j] + j;
+        int pos=mispos[j] + j;                      // Update the missing position according to missing count
                                                             
-        for(int i = size; i >= pos; i--) {
-        final_sentence[i] = final_sentence[i - 1];
+        for(int i = size; i >= pos; i--)            // the loop will run in reverse order until position of missing element is found
+        {
+        final_sentence[i] = final_sentence[i - 1];  // elements are stored in one position next 
     }
-    final_sentence[pos] = MIS;                                                //replace # on the missing postion
-    size++;                       // Increase size of array
+    final_sentence[pos] = MIS;                      // replace # on the missing postion
+    size++;                                         // Increase size of array
 
     }
-cout<<"final sentence is : "<<final_sentence<<endl;
-    Tokenize_data(final_sentence); // CALL THE FUNCTION TO PARSE FINAL SENTENCE
+//cout<<"final sentence is : "<<final_sentence<<endl;
+   
+    Tokenize_data(final_sentence);                  // CALL THE FUNCTION TO PARSE FINAL SENTENCE
 
                                                             
 }
 
 void Tokenize_data(char final_sentence[])
 {   
-char NumofPrmtrs[15];
-char *token=strtok(final_sentence,",");
-int param_no=1;
-while(token!=NULL)
+
+char *token=strtok(final_sentence,",");      // Using strtok function to tokenize sentence with a ',' as delimeter
+int param_no=0;
+while(token!=NULL)                           // Loop runns until Find Null Value as at the end;
 { 
-    switch(param_no){
-        case 1:
+    //enum Tokens {sentenceID, time, latitude, latDir, logitude, longitudeDir, QualityIndicator, Numofsattelites, horizontaldilution, altitude, altitudeUnits, meansealevelheight, geoidseparationUnits, timesincelastDC, differentialstationID};
+
+    switch(param_no)
+    {
+        case sentenceID:
         GPSdata.sentenceID=token;
         break;
 
-        case 2:
+        case time:
         GPSdata.time=token;
         break;
 
-        case 3:
+        case latitude:
         GPSdata.latitude=token;
         break;
 
-        case 4:
+        case latDir:
         GPSdata.latDir=token[0];
         break;
 
-        case 5:
+        case logitude:
         GPSdata.longitude=token;
         break;
 
-        case 6:
+        case longitudeDir:
         GPSdata.longDir=token[0];
         break;
 
-        case 7:
+        case QualityIndicator:
         GPSdata.QualityIndicator=stoi(token);
         break;
 
-        case 8:
+        case Numofsattelites:
         GPSdata.NumofSat=stoi(token);
         break;
 
-        case 9:
+        case horizontaldilution:
         GPSdata.horizontaldilution=token;
         break;
 
-        case 10:
+        case altitude:
         GPSdata.altitude=token;
         break;
 
-        case 11:
+        case altitudeUnits:
         GPSdata.altitudeUnits=token[0];
         break;
 
-        case 12:
+        case meansealevelheight:
         GPSdata.meansealevelheight=token;
         break;
 
-        case 13:
+        case geoidseparationUnits:
         GPSdata.geoidseparationUnits=token[0];
         break;
 
-        case 14:
+        case timesincelastDC:
         GPSdata.timesincelastDC=token;
         break;
 
-        case 15:
+        case differentialstationID:
         GPSdata.differentialstationID=token;
         break;
 
     }
-   // cout<<"the token "<<param_no<<" :"<<token<<endl;
-    token=strtok(NULL,",");
+ 
+    token=strtok(NULL,",");               // every time token is assigned the next previous delimeter is 
     param_no++;
 }
-    GPSdata.checksum=calculated_checksum_hex;
+    GPSdata.checksum=calculated_checksum_hex;          
 }
 
-bool unit_test1() {
+bool unit_test1() // This function tests the values of the output by comparing with the input parameter and return true if all values are equal
+{
     return (GPSdata.time == "002153.000") &&
            (GPSdata.latitude == "3342.6618") &&
            (GPSdata.latDir == 'N') &&
@@ -264,7 +272,7 @@ bool unit_test1() {
            (GPSdata.checksum == "5E");
 }
 
-void print()
+void print()      // Print the parameters of the GGA sentence
 {
     
 cout<<"sentence ID: "<<                    GPSdata.sentenceID<<endl;
