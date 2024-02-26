@@ -30,12 +30,12 @@ struct GPSData{
     string differentialstationID;
     string checksum;
 
-}GPSdata, Dummy;
+}GPSdata;
 
 //struct GPSdata ind_param;
 int main()
 {
-    string Sentence1="$GPGGA,165132.00,5326.51778,N,00615.47460,W,1,07,1.0,64.1,M,46.2,M,,*45";
+    string Sentence1="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E";
 
     //string Sentence2="$GPGGA,115739.00,4158.8441367,N,09147.4416929,W,4,13,0.9,255.747,M,-32.00,M,01,0000*6E";
     //string Sentence3="$GPGGA,002153.000,3342.6618,N,11751.3858,W,1,10,1.2,27.0,M,-34.2,M,,0000*5E"   //invalid sentence
@@ -63,18 +63,17 @@ int Start_Parsing(string packet)
     for (i = 1; packet[i] != '*' && packet[i] != '\0'; i++) {
         checksum ^= packet[i];
     }
-
     
 char provided_checksum[2];
       if (packet[i]=='*') //extract provided checksum
         {
-          provided_checksum[0]=packet[i+1];
-          provided_checksum[1]=packet[i+2];
-          provided_checksum[2]='\0';
+          provided_checksum[0]=packet[i+1];  //store first element next to steic in provided_checksum[0]
+          provided_checksum[1]=packet[i+2];  //store second ....               ..   provided_checksum[0]
+          provided_checksum[2]='\0';         //store last element as null
         }
          // check if steric is present or not if not then no checksum found
     
-    cout<<endl<<"the provided checksum is"<<provided_checksum<<endl;
+
     if (packet[i] != '*') {
         cout<<"Checksum Not Found! '-': "<<endl;
         return 0;
@@ -88,14 +87,13 @@ char provided_checksum[2];
 
 
     int commas = 0;
-    for (int i = 0; i < strlen(packet.c_str()); i++) {
+    for (int i = 0; i < strlen(packet.c_str()); i++) // extract the number of commas in the packet
+    {
         if (packet[i] == ',') {
             commas++;
-        }
-
-            
+        }       
     }
- 
+    // This section compares the first 7 character of the packet with GPGGA to confirm sentence as GGA and check if threre are 14 commas
 
     if (strncmp(packet.c_str(), "$GPGGA,", 7) == 0 && commas == 14 && packet[i] == '*')//c_str() function converts the string packet to a const character
      {
@@ -103,19 +101,19 @@ char provided_checksum[2];
 
     } else {
        cout<<"The sentence is not in GGA format: \n"<<endl;
-        //return 0;
+        return 0;
     }
 
     // Check packet integrity
+    
     if (strcmp(provided_checksum, calculated_checksum_hex) == 0) {
         cout<<"Packet integrity valid: chksum \n"<< calculated_checksum_hex<<endl;
 
-        manage_missing(packet);  //if packet integrity valid then manage manage missing
-
+        manage_missing(packet);  //if packet integrity valid then manage manage missing function is called
     } else {
-        cout<<"Packet integrity not valid: chksum \n"<< calculated_checksum_hex<<endl;
-        //return 0;
-        manage_missing(packet); 
+        cout<<"Packet integrity not valid: chksum \n"<< calculated_checksum_hex<<endl;   // if packet intefrity is not valid then return 0
+        return 0;
+        //manage_missing(packet); 
     }
 }
 
@@ -127,20 +125,24 @@ void manage_missing(string packet) {
     for (int i = 1; packet[i] != '*'; i++) {
         packet2[k++] = packet[i];
     }
-    packet2[k] = ',';
+    packet2[k] = ','; // Adding comma at the last point to make last data as token
     packet2[k+1]='\0';
 
     cout<<packet2<<endl;
 
+//onwards this section the missing packets will be replaced by a '#'
+
  char MIS = '#';
-    int size = packet.size();
-    char final_sentence[size + 1]; // Increase size by 1 to accommodate the new character
+    
+    int size= strlen(packet2);
+   
+    char final_sentence[size + 1]; //  Increase size by 1 to accommodate the new character
 
-    strcpy(final_sentence, packet2);
+    strcpy(final_sentence, packet2);   // Copy the packet to final sentence that will contained managed data
 
-    //cout << "Original data: " << final_sentence << endl;
+   
 
-    int mispos[size];
+    int mispos[size];                    
     int empty_count = 0;
 
     for(int i = 0; i < size; i++) {
@@ -151,10 +153,10 @@ void manage_missing(string packet) {
     }
     //cout << "Number of empty positions: " << empty_count << endl;
 
-    for(int j = 0; j < empty_count; j++) {          //loop qill run according to empty positions
+    for(int j = 0; j < empty_count; j++) {          //loop till run according to empty positions
 
         int pos=mispos[j] + j;
-                                                            //manage_missing(final_sentence, MIS, mispos[j] + j, size);
+                                                            
         for(int i = size; i >= pos; i--) {
         final_sentence[i] = final_sentence[i - 1];
     }
